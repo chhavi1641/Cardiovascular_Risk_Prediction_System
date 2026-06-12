@@ -7,7 +7,6 @@ import joblib
 # ==========================
 
 model = joblib.load("cardio_risk_model.pkl")
-# imputer = joblib.load("imputer.pkl")
 feature_names = joblib.load("feature_names.pkl")
 
 # ==========================
@@ -21,12 +20,11 @@ st.set_page_config(
 )
 
 st.title("❤️ Cardiovascular Risk Prediction System")
-st.markdown(
-    """
-    Predict the likelihood of cardiovascular risk using
-    demographic information, vital signs, and laboratory measurements.
-    """
-)
+
+st.markdown("""
+Predict the likelihood of cardiovascular risk using demographic information,
+vital signs, and laboratory measurements.
+""")
 
 # ==========================
 # Sidebar Inputs
@@ -72,17 +70,51 @@ st.subheader("Clinical Measurements")
 col1, col2 = st.columns(2)
 
 with col1:
-    bmi = st.slider("BMI", 10.0, 60.0, 25.0)
-    sbp = st.slider("Systolic BP", 80, 220, 120)
-    dbp = st.slider("Diastolic BP", 40, 140, 80)
+    bmi = st.slider(
+        "BMI",
+        min_value=10.0,
+        max_value=60.0,
+        value=25.0
+    )
+
+    sbp = st.slider(
+        "Systolic Blood Pressure",
+        min_value=80,
+        max_value=220,
+        value=120
+    )
+
+    dbp = st.slider(
+        "Diastolic Blood Pressure",
+        min_value=40,
+        max_value=140,
+        value=80
+    )
 
 with col2:
-    hr = st.slider("Heart Rate", 40, 180, 75)
-    glucose = st.slider("Glucose", 50, 400, 100)
-    hba1c = st.slider("HbA1c", 3.0, 15.0, 5.5)
+    hr = st.slider(
+        "Heart Rate",
+        min_value=40,
+        max_value=180,
+        value=75
+    )
+
+    glucose = st.slider(
+        "Glucose",
+        min_value=50,
+        max_value=400,
+        value=100
+    )
+
+    hba1c = st.slider(
+        "HbA1c",
+        min_value=3.0,
+        max_value=15.0,
+        value=5.5
+    )
 
 # ==========================
-# Lab Values
+# Laboratory Results
 # ==========================
 
 st.subheader("Laboratory Results")
@@ -90,37 +122,39 @@ st.subheader("Laboratory Results")
 col3, col4 = st.columns(2)
 
 with col3:
+
     cholesterol = st.slider(
         "Cholesterol",
-        50,
-        400,
-        180
+        min_value=50,
+        max_value=400,
+        value=180
     )
 
     ldl = st.slider(
         "LDL",
-        20,
-        300,
-        100
+        min_value=20,
+        max_value=300,
+        value=100
     )
 
 with col4:
+
     hdl = st.slider(
         "HDL",
-        10,
-        120,
-        50
+        min_value=10,
+        max_value=120,
+        value=50
     )
 
     creatinine = st.slider(
         "Creatinine",
-        0.1,
-        10.0,
-        1.0
+        min_value=0.1,
+        max_value=10.0,
+        value=1.0
     )
 
 # ==========================
-# Prediction Button
+# Prediction
 # ==========================
 
 if st.button("Predict Risk"):
@@ -167,40 +201,36 @@ if st.button("Predict Risk"):
         "RACE_other": 1 if race == "other" else 0,
         "RACE_white": 1 if race == "white" else 0,
 
-        "ETHNICITY_nonhispanic":
-            1 if ethnicity == "nonhispanic" else 0
+        "ETHNICITY_nonhispanic": 1 if ethnicity == "nonhispanic" else 0
     }
 
+    # Create DataFrame
     input_df = pd.DataFrame([data])
 
-    # Match training order
+    # Match training feature order
     input_df = input_df.reindex(
         columns=feature_names,
         fill_value=0
     )
 
-    imputer.transform(input_df)
+    # Convert all columns to numeric
+    input_df = input_df.astype(float)
 
+    # Prediction
     risk_prob = model.predict_proba(input_df)[0][1]
 
     st.subheader("Prediction Result")
 
     if risk_prob < 0.30:
-        st.success(
-            f"Low Risk ({risk_prob:.1%})"
-        )
+        st.success(f"🟢 Low Risk ({risk_prob:.1%})")
 
     elif risk_prob < 0.60:
-        st.warning(
-            f"Moderate Risk ({risk_prob:.1%})"
-        )
+        st.warning(f"🟡 Moderate Risk ({risk_prob:.1%})")
 
     else:
-        st.error(
-            f"High Risk ({risk_prob:.1%})"
-        )
+        st.error(f"🔴 High Risk ({risk_prob:.1%})")
 
     st.metric(
-        "Risk Probability",
-        f"{risk_prob:.1%}"
+        label="Risk Probability",
+        value=f"{risk_prob:.1%}"
     )
