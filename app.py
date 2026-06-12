@@ -7,7 +7,7 @@ import joblib
 # ==========================
 
 model = joblib.load("cardio_risk_model.pkl")
-imputer = joblib.load("imputer.pkl")
+# imputer = joblib.load("imputer.pkl")
 feature_names = joblib.load("feature_names.pkl")
 
 # ==========================
@@ -179,10 +179,7 @@ if st.button("Predict Risk"):
         fill_value=0
     )
 
-    input_df = pd.DataFrame(
-        imputer.transform(input_df),
-        columns=input_df.columns
-    )
+    imputer.transform(input_df)
 
     risk_prob = model.predict_proba(input_df)[0][1]
 
